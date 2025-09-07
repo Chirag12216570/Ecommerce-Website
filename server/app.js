@@ -1,3 +1,4 @@
+
 const express = require("express");
 const bcrypt = require('bcryptjs');
 const fileUpload = require("express-fileupload");
@@ -11,6 +12,8 @@ const orderRouter = require("./routes/customer_orders");
 const slugRouter = require("./routes/slugs");
 const orderProductRouter = require('./routes/customer_order_product');
 const wishlistRouter = require('./routes/wishlist');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 var cors = require("cors");
 
 const app = express();
@@ -25,6 +28,7 @@ app.use(
 );
 app.use(fileUpload());
 
+
 app.use("/api/products", productsRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/images", productImagesRouter);
@@ -35,6 +39,17 @@ app.use("/api/orders", orderRouter);
 app.use('/api/order-product', orderProductRouter);
 app.use("/api/slugs", slugRouter);
 app.use("/api/wishlist", wishlistRouter);
+
+app.use("/dashboard", require("./routes/dashboard"));
+
+
+
+const { logVisitorAction } = require('./analytics/analyticsService');
+app.post('/api/test-visitor', async (req, res) => {
+  const { userId, action, productId } = req.body;
+  await logVisitorAction({ userId, action, productId });
+  res.json({ success: true });
+});
 
 
 const PORT = process.env.PORT || 3001;

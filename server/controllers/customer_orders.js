@@ -1,5 +1,7 @@
+
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const { recordProductSale } = require('../analytics/analyticsService');
 
 async function createCustomerOrder(request, response) {
   try {
@@ -17,7 +19,18 @@ async function createCustomerOrder(request, response) {
       country,
       orderNotice,
       total,
+      products
     } = request.body;
+
+    // Track product sales in analytics
+    if (products && Array.isArray(products)) {
+      for (const item of products) {
+        if (item.productId) {
+          await recordProductSale(item.productId);
+        }
+      }
+    }
+
     const corder = await prisma.customer_order.create({
       data: {
         name,

@@ -27,6 +27,7 @@ model Product {
   category       Category                 @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   customerOrders customer_order_product[]
   Wishlist       Wishlist[]
+  productTrends  ProductTrend[]
 }
 
 model Image {
@@ -36,11 +37,12 @@ model Image {
 }
 
 model User {
-  id       String     @id @default(uuid())
-  email    String     @unique
-  password String?
-  role     String?    @default("user")
-  Wishlist Wishlist[]
+  id          String       @id @default(uuid())
+  email       String       @unique
+  password    String?
+  role        String?      @default("user")
+  Wishlist    Wishlist[]
+  visitorLogs VisitorLog[]
 }
 
 model Customer_order {
@@ -83,4 +85,24 @@ model Wishlist {
   productId String
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
+}
+
+model ProductTrend {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  date      DateTime
+  views     Int      @default(0)
+  sales     Int      @default(0)
+
+  @@unique([productId, date])
+}
+
+model VisitorLog {
+  id        String   @id @default(uuid())
+  userId    String? // Nullable for anonymous visitors
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  visitedAt DateTime @default(now())
+  action    String // e.g., "view_product", "checkout", etc.
+  productId String? // Nullable, if action relates to a product
 }

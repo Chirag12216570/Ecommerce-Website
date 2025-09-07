@@ -401,6 +401,9 @@ async function getProductById(request, response) {
   if (!product) {
     return response.status(404).json({ error: "Product not found" });
   }
+  // Track product view
+  const { recordProductView } = require('../analytics/analyticsService');
+  await recordProductView(id);
   return response.status(200).json(product);
 }
 

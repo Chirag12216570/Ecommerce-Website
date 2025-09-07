@@ -186,51 +186,38 @@ const demoProductImages = [
 
 
 const demoCategories = [
-  {
-    name: "speakers",
-  },
-  {
-    name: "trimmers",
-  },
-  {
-    name: "laptops",
-  },
-  {
-    name: "watches",
-  },
-  {
-    name: "headphones",
-  },
-  {
-    name: "juicers",
-  },
-  {
-    name: "speakers",
-  },
-  {
-    name: "earbuds",
-  },
-  {
-    name: "tablet-keyboards",
-  },
-  {
-    name: "phone-gimbals",
-  },
-  {
-    name: "mixer-grinders",
-  },
-  {
-    name: "cameras",
-  },
-  {
-    name: "smart-phones",
-  },
+  { name: "speakers" },
+  { name: "trimmers" },
+  { name: "laptops" },
+  { name: "watches" },
+  { name: "headphones" },
+  { name: "juicers" },
+  { name: "earbuds" },
+  { name: "tablet-keyboards" },
+  { name: "phone-gimbals" },
+  { name: "mixer-grinders" },
+  { name: "cameras" },
+  { name: "smart-phones" }
 ];
 
 async function insertDemoData() {
+  // Create categories first and map their names to IDs
+  const categoryMap = {};
+  for (const category of demoCategories) {
+    let created = await prisma.category.findUnique({ where: { name: category.name } });
+    if (!created) {
+      created = await prisma.category.create({ data: category });
+    }
+    categoryMap[category.name] = created.id;
+  }
+  console.log("Demo categories inserted successfully!");
+
+  // Create products with correct categoryId
   for (const product of demoProducts) {
+    const { category, ...rest } = product;
+    const categoryId = categoryMap[category];
     await prisma.product.create({
-      data: product,
+      data: { ...rest, categoryId },
     });
   }
   console.log("Demo products inserted successfully!");
@@ -241,13 +228,6 @@ async function insertDemoData() {
     });
   }
   console.log("Demo images inserted successfully!");
-
-  for (const category of demoCategories) {
-    await prisma.category.create({
-      data: category,
-    });
-  }
-  console.log("Demo categories inserted successfully!");
 }
 
 insertDemoData()
